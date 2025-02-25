@@ -92,13 +92,6 @@ def GetIndexes(behavior,subject,block,choice,context,trial_type,rewarded,stayshi
 			Choose to print out data as script progresses in order to aid with debugging.
 	'''
 	
-	if debug:
-		print("behavior vector")
-		print(behavior.keys())
-		for key in behavior.keys(): 
-			if 'num_trials' not in key: print(behavior[key].shape, np.unique(behavior[key]))
-		input(f'Current line of code: {get_line_number()} \nPress enter to continue')
-	
 	if subject == 'Luigi':
 		num_trials_A = num_trials_B = 100
 	elif subject == 'Mario':
@@ -152,17 +145,12 @@ def GetIndexes(behavior,subject,block,choice,context,trial_type,rewarded,stayshi
 	elif stayshift == 'stayshift not analyzed':
 		stayshift_ind = np.full_like(behavior['Rewarded'],True,dtype=bool)
 		
-	if debug:
-		print("GetIndexes:\nlen(choice_ind),len(trial_type_ind),len(context_ind),len(reward_ind)")	 
-		print(len(choice_ind),len(trial_type_ind),len(context_ind),len(reward_ind))
-		input(f'Current line of code: {get_line_number()} \nPress enter to continue')
-		
 	ind = choice_ind & trial_type_ind & context_ind & reward_ind & stayshift_ind
 	ind = np.nonzero(ind)[0] #convert vector of bools to actual indexes
 	
-	if stayshift and epoch=='rp':
+	if (stayshift != "stayshift not analyzed") and (epoch=='rp'):
 		ind = ind - 1 #to look at the rewards that precede the winstay/loseshift decision, shift indices back one
-	
+
 	#get indexes for specified block
 	if block == 'BlA':
 		ind = ind[ind < num_trials_A]
@@ -174,6 +162,10 @@ def GetIndexes(behavior,subject,block,choice,context,trial_type,rewarded,stayshi
 		ind = ind[np.array(ind>num_trials_A) & np.array(ind<num_trials_A+num_trials_B)]
 	elif block == 'BlAp':
 		ind = ind[ind > num_trials_A+num_trials_B]
+		
+	if debug:
+		print(f"GetIndexes: {len(ind)}/{len(trial_type_ind)} trials chosen")	 
+		#print(f'Current line of code: {get_line_number()} \nPress enter to continue')
 
 	return ind
 
