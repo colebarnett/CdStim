@@ -10,7 +10,7 @@ Methods which process raw HDF, TDT, and syncHDF files to yield time-aligned LFP
 snippets, spectrograms, PSDs, and behavioral metrics.
 """
 
-
+#%% Import libs
 from SortedFiles import GetFileList
 import pickle
 import matplotlib.pyplot as plt
@@ -32,20 +32,30 @@ import time
 import sys
 from pandas.core.common import flatten
 
-# import neurodsp.spectral
-# import neurodsp.utils
-# import neurodsp.timefrequency
+import neurodsp.spectral
+import neurodsp.utils
+import neurodsp.timefrequency
 
-# import neptune
+import neptune
 
 import os
 import inspect
 
+
+#%% Path Global Vars
+#Lab Computer Paths
+data_path = "F:\\RishiData"
+
+#Extermal HardDrive
+#data_path = "E:\\Value Stimulation\\Data"
+
+#%%GetLineNumber
 def GetLineNumber(): #to aid w/ debugging
     return inspect.currentframe().f_back.f_lineno
 
 
-#% Loop Function
+#%% Loop Method
+
 def RunAllFiles(subject, funct_to_run, epoch, t_before, t_after, saveFlag, plotFlag, savefigFlag = False, 
 				file_list=[], mode=[], doNeptuneFlag=False, debugFlag=False, test=None, spect_mode='wavelet', downsampleFlag=True):
 	
@@ -145,8 +155,8 @@ def RunAllFiles(subject, funct_to_run, epoch, t_before, t_after, saveFlag, plotF
 # 			csv_files = [[paths['spikes path'] + filename for filename in filegroup] for filegroup in filenames['spikes filenames'][session]]
 			syncHDF_files = [paths['syncHDF path'] + filename for filename in filenames['syncHDF filenames'][session]]
 			tdt_files = [paths['tdt path'] + filename for filename in filenames['tdt filenames'][session]]
-				
-			#Find external hard drive, allowing flexibility of whether data is located on drive D: or E:
+
+			"""#Find external hard drive, allowing flexibility of whether data is located on drive D: or E:
 			if os.path.isdir("D:\\Value Stimulation\\Data\\" + subject):
 				saved_timesAlign_path = "D:\\Value Stimulation\\Data\\" + subject + "\\TimesAlign\\"
 				saved_behavior_path = "D:\\Value Stimulation\\Data\\" + subject + "\\Behavior\\"
@@ -156,8 +166,10 @@ def RunAllFiles(subject, funct_to_run, epoch, t_before, t_after, saveFlag, plotF
 				saved_behavior_path = "E:\\Value Stimulation\\Data\\" + subject + "\\Behavior\\"
 				saved_LFPsnippets_path = "E:\\Value Stimulation\\Data\\" + subject + "\\LFP\\"
 			else:
-				raise FileNotFoundError('External Hard Drive not found.')
-	
+				raise FileNotFoundError('External Hard Drive not found.')"""
+			saved_timesAlign_path = os.path.join(data_path, subject, "TimesAlign\\")
+			saved_behavior_path = os.path.join(data_path, subject, "Behavior\\")
+			saved_LFPsnippets_path = os.path.join(data_path, subject, "LFP\\")
 	
 			# Only run this session if setting is for all files or if this session was specified in file_list
 			hdf_file_unique_number = (hdf_files[0][-7:-4])
@@ -215,10 +227,10 @@ def RunAllFiles(subject, funct_to_run, epoch, t_before, t_after, saveFlag, plotF
 						epoch_str = 'RxnTime'
 					
 					#Get all SampsAlign files corresponding to each hdf file
-					for i in range(num_files):		
-						
+					for i in range(num_files):	
+  						
 						filestr = GetFileStr(hdf_files[i])
-						
+						                        
 						with open(saved_timesAlign_path + epoch_str + '_SampsAlign_' + filestr + '.pkl','rb') as f:
 							samps_align = pickle.load(f)
 						if i==0:
@@ -270,7 +282,8 @@ def RunAllFiles(subject, funct_to_run, epoch, t_before, t_after, saveFlag, plotF
 	return
 			
 			
-#% Functions which process raw data files
+#%% Methods which process raw data files
+
 
 def GetFileStr(filename):
 	#gets the filename which is sandwiched between the first 4 digits of 
@@ -1323,77 +1336,77 @@ def GetSamplesAlign(subject, hdf_files, syncHDF_files, num_trials_A,num_trials_B
 	return 
 
 
-# def ComputePSD(snippet,fs):
-# 	'''
-# 	Compute the power spectral density (PSD, V**2/Hz) vs freq curve for a given snippet of LFP signal.
-# 	
-# 	Uses neurodsp package (Voytek lab) to compute PSD.
-# 	
-# 	
-# 	Input
-# 	-------
-# 	snippet: 1D array. LFP activity over which to compute PSD.
-# 	fs: float. Sampling Frequency of LFP recording.
-# 	
-# 	Output
-# 	-------
-# 	f: 1D array. Array of frequencies corresponding to computed PSD values
-# 	psd: 1D array. Array of PSD values for each frequency given in f.
-# 	
-# 	'''
-# 	f = neurodsp.utils.data.create_freqs(4.,200.,2.) #4-200Hz w 2Hz resolution
-# 	n_cycles = f/4
-# 	f, psd = neurodsp.spectral.compute_spectrum(snippet, fs, method='wavelet',freqs=f,n_cycles=n_cycles)
-# 	f, psd = neurodsp.spectral.trim_spectrum(f,psd,[4.,200.])
-# 	
-# 	return f,psd
+def ComputePSD(snippet,fs):
+	'''
+	Compute the power spectral density (PSD, V**2/Hz) vs freq curve for a given snippet of LFP signal.
+	
+	Uses neurodsp package (Voytek lab) to compute PSD.
+	
+	
+	Input
+	-------
+	snippet: 1D array. LFP activity over which to compute PSD.
+	fs: float. Sampling Frequency of LFP recording.
+	
+	Output
+	-------
+	f: 1D array. Array of frequencies corresponding to computed PSD values
+	psd: 1D array. Array of PSD values for each frequency given in f.
+	
+	'''
+	f = neurodsp.utils.data.create_freqs(4.,200.,2.) #4-200Hz w 2Hz resolution
+	n_cycles = f/4
+	f, psd = neurodsp.spectral.compute_spectrum(snippet, fs, method='wavelet',freqs=f,n_cycles=n_cycles)
+	f, psd = neurodsp.spectral.trim_spectrum(f,psd,[4.,200.])
+	
+	return f,psd
 
 
-# def ComputeSpectrogram_CWT(snippet,fs,t_before,t_after):
-# 	'''
-# 	Compute the power spectral density (PSD, V**2/Hz) over frequency and time (aka spectrogram)
-# 	for a given time-aligned snippet of LFP signal.
-# 	
-# 	Uses neurodsp package (Voytek lab) to compute spectrogram.
-# 	
-# 	Input
-# 	-------
-# 	snippet: 1D array. LFP activity over which to compute PSD.
-# 	fs: float. Sampling Frequency of LFP recording.
-# 	t_before: float. How far snippet extends before time-alignment point. Used for time-alignment of the spectrogram.
-# 	t_after: float. How far snippet extends after time-alignment point. Used for time-alignment of the spectrogram.
-# 	
-# 	Output
-# 	-------
-# 	f: 1D array. Array of frequencies corresponding to computed PSD values
-# 	t: 1D array. Array of times corresponding to computed PSD values
-# 	Sxx: 2D array. Array of PSD values for each frequency and time point given by f and t.
-# 	
-# 	'''
-# 	
-# 	f = neurodsp.utils.data.create_freqs(1.,100.,1.) #1-100Hz w 1Hz resolution
-# 	t = neurodsp.utils.data.create_times(t_before+t_after,fs,start_val=-t_before)
-# 	n_cycles = f/4
-# 	
-# 	#if there's a rounding error making the snippet and time vector off by 1 sample
-# 	if (len(t) != len(snippet)) and (abs(len(t)-len(snippet)) == 1): 
-# 		t=np.resize(t,np.shape(snippet)) #make to be the same size
-# 		
-# 	Sxx = neurodsp.timefrequency.compute_wavelet_transform(snippet,fs,f,n_cycles=n_cycles)
-# # 	f,t,Sxx = neurodsp.spectral.trim_spectrogram(f,t,Sxx,f_range=None,t_range=[-0.2,1.]) #trim spectrogram to only be over hold
-# # 	#downsample along time dim because 500Hz of temporal res isn't needed and will make file size humongous
-# 	t = t[::5] #downsample by factor of 5, giving resulting temporal res of 10ms or 100hz, which should be sufficient for analysis.
-# 	Sxx = Sxx[:,::5]
+def ComputeSpectrogram_CWT(snippet,fs,t_before,t_after):
+	'''
+	Compute the power spectral density (PSD, V**2/Hz) over frequency and time (aka spectrogram)
+	for a given time-aligned snippet of LFP signal.
+	
+	Uses neurodsp package (Voytek lab) to compute spectrogram.
+	
+	Input
+	-------
+	snippet: 1D array. LFP activity over which to compute PSD.
+	fs: float. Sampling Frequency of LFP recording.
+	t_before: float. How far snippet extends before time-alignment point. Used for time-alignment of the spectrogram.
+	t_after: float. How far snippet extends after time-alignment point. Used for time-alignment of the spectrogram.
+	
+	Output
+	-------
+	f: 1D array. Array of frequencies corresponding to computed PSD values
+	t: 1D array. Array of times corresponding to computed PSD values
+	Sxx: 2D array. Array of PSD values for each frequency and time point given by f and t.
+	
+	'''
+	
+	f = neurodsp.utils.data.create_freqs(1.,100.,1.) #1-100Hz w 1Hz resolution
+	t = neurodsp.utils.data.create_times(t_before+t_after,fs,start_val=-t_before)
+	n_cycles = f/4
+	
+	#if there's a rounding error making the snippet and time vector off by 1 sample
+	if (len(t) != len(snippet)) and (abs(len(t)-len(snippet)) == 1): 
+		t=np.resize(t,np.shape(snippet)) #make to be the same size
+		
+	Sxx = neurodsp.timefrequency.compute_wavelet_transform(snippet,fs,f,n_cycles=n_cycles)
+# 	f,t,Sxx = neurodsp.spectral.trim_spectrogram(f,t,Sxx,f_range=None,t_range=[-0.2,1.]) #trim spectrogram to only be over hold
+# 	#downsample along time dim because 500Hz of temporal res isn't needed and will make file size humongous
+	t = t[::5] #downsample by factor of 5, giving resulting temporal res of 10ms or 100hz, which should be sufficient for analysis.
+	Sxx = Sxx[:,::5]
 
-# # 	Sxx = np.array(Sxx, dtype='complex64') #change precision to reduce memory demand
-# 	Sxx = np.array(abs(Sxx)) #take abs to get rid of imag component to reduce memory demand
-# 	
-# 	assert np.shape(Sxx) == (len(f),len(t))
-# 	
-# # 	print(Sxx.shape)
-# # 	xxx
-# 	
-# 	return f,t,Sxx #Sxx = spectrogram for snippet
+# 	Sxx = np.array(Sxx, dtype='complex64') #change precision to reduce memory demand
+	Sxx = np.array(abs(Sxx)) #take abs to get rid of imag component to reduce memory demand
+	
+	assert np.shape(Sxx) == (len(f),len(t))
+	
+# 	print(Sxx.shape)
+# 	xxx
+	
+	return f,t,Sxx #Sxx = spectrogram for snippet
     
 
 # def ComputeSpectrogram_NoDownsampling(snippet,fs,t_before,t_after):
@@ -1607,7 +1620,7 @@ def ProcessLFP(tdt_files,samps_align_list,epoch,t_before,t_after,file_path,
 		print('data mode: all')
 		
 	num_files = len(tdt_files) #number of files within the current session
-
+	
 	# ensure there is a samps_align file for each tdt file
 	assert len(samps_align_list) == num_files
 	
@@ -1709,11 +1722,15 @@ def ProcessLFP(tdt_files,samps_align_list,epoch,t_before,t_after,file_path,
 				#Get test signal
 				if test:
 					sig = GetTestSig(test,fs_orig,t_before,t_after)				
-								
+					
 				#downsample
 				if downsampleFlag:
 					sig = signal.decimate(sig,q) #downsample down to 500Hz. This function applies anti-aliasing filters.
-			
+				
+				
+				assert len(sig) == num_samps_per_trial, f'ch {ch}, trial {trial}/{len(samps_align)}'
+				
+				
 				# Filter line noise	
 				sig = filtfilt(b60,a60,sig) #filter out 60hz noise
 				sig = filtfilt(b60,a60,sig) #filter out 60hz noise, again
@@ -1726,17 +1743,17 @@ def ProcessLFP(tdt_files,samps_align_list,epoch,t_before,t_after,file_path,
 			
 				if doSpects:
 					# Get spectrogram
-# 					if spect_mode == 'wavelet':
-# 						f,t,Sxx = ComputeSpectrogram_CWT(sig,fs_out,t_before,t_after)
+					if spect_mode == 'wavelet':
+						f,t,Sxx = ComputeSpectrogram_CWT(sig,fs_out,t_before,t_after)
 					if spect_mode == 'sfft':
 						f,t,Sxx = ComputeSpectrogram_SFFT(sig,fs_out,t_before,t_after,downsampleFlag)
 					
 					spects[ch].append(Sxx) 
 			
-# 				if doPSDs:
-# 					# Get PSD
-# 					f_psd,psd = ComputePSD(sig,fs_out) 
-# 					psds[ch].append(psd)
+				if doPSDs:
+					# Get PSD
+					f_psd,psd = ComputePSD(sig,fs_out) 
+					psds[ch].append(psd)
 
 			
 			chtime = np.rint(time.time() - chtime_start)
@@ -1783,6 +1800,11 @@ def ProcessLFP(tdt_files,samps_align_list,epoch,t_before,t_after,file_path,
 	
 	#Save out dictionaries
 	if saveFlag:
+		
+		
+		del snips_data
+		del spects
+		del psds
 		
 		if doSnips:
 			file_save_name = file_path + test_name + 'LFP_snippets_'+ epoch + '_' + filestr + '.pkl'

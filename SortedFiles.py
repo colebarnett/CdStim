@@ -4,8 +4,16 @@ Created on Tue Oct 10 12:19:37 2023
 
 @author: coleb
 """
+import os
 
+#%% Path Global Vars
+#Lab Computer Paths
+data_path = "F:\\RishiData"
 
+#Extermal HardDrive
+#data_path = "E:\\Value Stimulation\\Data"
+
+#%%GetFileList
 def GetFileList(subject, stim_or_sham):
 	'''
 	
@@ -35,7 +43,7 @@ def GetFileList(subject, stim_or_sham):
 		#### hdf files
 		
 		# Paths to Where the hdf files are:
-		path_hdf = "E:\\Value Stimulation\\Data\\Luigi\\hdf\\"
+		path_hdf = os.path.join(data_path, subject, "hdf\\")
 
 		filenames_sham_hdf = [
 		                        ['luig20170822_07_te133.hdf'],
@@ -109,7 +117,8 @@ def GetFileList(subject, stim_or_sham):
 		#### syncHDF files
 		
 		# Paths to Where the syncHDF files are:
-		path_syncHDF = "E:\\Value Stimulation\\Data\\Luigi\\syncHDF\\"
+		path_syncHDF = os.path.join(data_path, subject, "syncHDF\\")
+
 		
 		# (some files are repeated in the list so that they can match with the offline sorted spike files they correspond to)
 		filenames_sham_syncHDF = [
@@ -146,7 +155,8 @@ def GetFileList(subject, stim_or_sham):
 		#### tdt files
 		
 		# Paths to Where the tdt files are:
-		path_tdt = "E:\\Value Stimulation\\Data\\Luigi\\tdt\\"
+		path_tdt = os.path.join(data_path, subject, "tdt\\")
+
 
 		filenames_sham_tdt = [
 		                        ['Luigi20170822\\Block-2'],
