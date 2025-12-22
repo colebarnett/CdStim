@@ -124,7 +124,7 @@ class ValueModelingClass:
             'DualBaselineDecay': 8,  # 2 alphas + decay + beta for A, same for A'
         }
     
-    def get_values(self, hdf_file, num_trials_A, num_trials_B, method='PersDecay'):
+    def get_values(self, hdf_file, num_trials_A, num_trials_B, method='PersSingle'):
         """
         Extract Q-values from HDF file using specified Q-learning model.
         
