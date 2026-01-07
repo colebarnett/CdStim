@@ -596,17 +596,23 @@ if __name__ == "__main__":
     # Example: Extract Q-values from a session
     vmc = ValueModelingClass()
     
-    hdf_file = '/Users/rishichapati/Documents/SantaCruzLab/RishiMacData/Luigi/hdf/luig20170927_07_te361.hdf'
+    # hdf_file = '/Users/rishichapati/Documents/SantaCruzLab/RishiMacData/Luigi/hdf/luig20170927_07_te361.hdf'
+    hdf_file = r"C:\Users\coleb\Desktop\Santacruz Lab\Whitehall\Analysis\airp20250919_02_te2177\airp20250919_02_te2177.hdf"
 
-    num_trials_A = 100
-    num_trials_B = 100
+    # num_trials_A = 100
+    # num_trials_B = 100
+    num_trials_A = 0
+    num_trials_B = 0
     
     value_dict = vmc.get_values(hdf_file, num_trials_A, num_trials_B, method='PersDecay')
     print(f"\nQ-values extracted! Shape: {value_dict['Q_low'].shape}")
     
-    vmc.plot_model_comparison(
-        hdf_file, num_trials_A, num_trials_B,
+    # vmc.plot_model_comparison(
+    #     hdf_file, num_trials_A, num_trials_B,
         
-        save_path='model_comparison.png'
-    )
+    #     save_path='model_comparison.png'
+    # )
     plt.show()
+    
+    
+
